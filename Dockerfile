@@ -1,16 +1,19 @@
-FROM golang:1.22
+FROM golang:1.22 AS builder
 
-WORKDIR /fizzbuzz
+WORKDIR /app
 
 COPY go.mod .
 COPY go.sum .
 
-
 COPY cmd ./cmd
 COPY lib ./lib
-COPY templates ./templates
 COPY main.go .
 
-RUN go build -o ./fizzbuzz
+RUN CGO_ENABLED=0 go build -o ./fizzbuzz
 
-CMD ["./fizzbuzz", "serve"]
+FROM scratch
+
+COPY --from=builder /app/fizzbuzz /fizzbuzz
+COPY templates /templates
+
+CMD ["/fizzbuzz", "serve"]
